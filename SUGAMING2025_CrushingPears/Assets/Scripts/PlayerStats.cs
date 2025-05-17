@@ -8,6 +8,15 @@ public class PlayerStats : MonoBehaviour
 {
     private Dictionary<string, int> inventory = new Dictionary<string, int>();
 
+    private void OnTriggerEnter(Collider other)
+    {
+        Item item = other.GetComponent<Item>();   
+    if(item != null)
+        {
+            item.Collect(this);
+        }
+    }
+
     public void CollectItem(string itemName, int amount = 1)
     {
         if (inventory.ContainsKey(itemName)) {
@@ -19,7 +28,7 @@ public class PlayerStats : MonoBehaviour
             inventory[itemName] = amount;
         }
 
-        Debug.Log($"Collected {amount} of which {itemName}. Total: {inventory[itemName]}");
+        Debug.Log($"Collected {amount} of {itemName}. Total: {inventory[itemName]}");
     }
 
     public bool HasItem(string itemName)
