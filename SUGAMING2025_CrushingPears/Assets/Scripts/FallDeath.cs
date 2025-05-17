@@ -8,10 +8,6 @@ public class FallDeath : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float deadlyFallVelocity = -15f;
 
-    [Header("Effects")]
-    [SerializeField] private GameObject deathEffect;
-    [SerializeField] private AudioClip deathSound;
-
     private Rigidbody2D rb;
     private PlayerController playerController;
     private float maxFallVelocity;
@@ -22,40 +18,46 @@ public class FallDeath : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerController = GetComponent<PlayerController>();
 
-        if (RespawManager.Instance == null)
-        {
-            GameObject respawnManager = new GameObject("RespawnManager");
-            respawnManager.AddComponent<RespawManager>();
-            respawnManager.GetComponent<RespawManager>().defaultRespawnPoint = transform.position;
-        }
+        // Immediate error if components missing
+        if (rb == null) Debug.LogError("MISSING Rigidbody2D!", this);
+        if (playerController == null) Debug.LogError("MISSING PlayerController!", this);
     }
 
     void FixedUpdate()
     {
-        if (!playerController.isGrounded)
-        {
-            if (rb.velocity.y < maxFallVelocity)
-            {
-                maxFallVelocity = rb.velocity.y;
-            }
-        }
-        else if (wasFalling && maxFallVelocity <= deadlyFallVelocity)
-        {
-            DieFromFall();
-        }
+        Debug.Log($"Current Y Velocity: {rb.velocity.y}"); // Critical debug line
 
-        wasFalling = !playerController.isGrounded;
-        if (playerController.isGrounded) maxFallVelocity = 0;
+        bool isFalling = !playerController.isGrounded && rb.velocity.y < 0;
+
+        if (isFalling)
+        {
+            wasFalling = true;
+            if (rb.velocity.y < maxFallVelocity)
+                maxFallVelocity = rb.velocity.y;
+        }
+        else if (wasFalling) // Just landed
+        {
+            Debug.Log($"Landed with velocity: {maxFallVelocity}");
+
+            if (maxFallVelocity <= deadlyFallVelocity)
+            {
+                Debug.Log("FATAL FALL DETECTED");
+                DieFromFall();
+            }
+            ResetFallTracking();
+        }
     }
 
-    private void DieFromFall()
+    void DieFromFall()
     {
-        Debug.Log("Player died from fall!");
-
-        if (deathEffect != null) Instantiate(deathEffect, transform.position, Quaternion.identity);
-        if (deathSound != null) AudioSource.PlayClipAtPoint(deathSound, transform.position);
-
+        Debug.Log("DEATH TRIGGERED - Calling Respawn");
         playerController.DisablePlayer();
         RespawManager.Instance.RespawnPlayer(gameObject);
+    }
+
+    void ResetFallTracking()
+    {
+        wasFalling = false;
+        maxFallVelocity = 0;
     }
 }

@@ -24,8 +24,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float groundCheckRadius = 0.2f;
 
     private Rigidbody2D rb;
-    [SerializeField] private bool isGrounded;
-    [SerializeField] private bool isJumping;
+    public bool isGrounded;
+    public bool isJumping;
     private bool canAirJump = false;
     private float jumpTimeCounter;
     public bool m_FacingRight = true;
@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        Debug.Log("Current Y Velocity: " + rb.velocity.y);
+        //Debug.Log("Current Y Velocity: " + rb.velocity.y);
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         if (isGrounded)
         {
