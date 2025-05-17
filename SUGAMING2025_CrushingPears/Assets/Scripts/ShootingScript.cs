@@ -16,6 +16,7 @@ public class ShootingScript : MonoBehaviour
     public GameObject bullet;
     public Transform bulletTransform;
 
+    public int amountBullets = 5;
     public bool canFire;
     private float timer;
     public float timeBetweenShots;
@@ -66,6 +67,12 @@ public class ShootingScript : MonoBehaviour
             : new Vector3(-originalScale.x, originalScale.y, originalScale.z);
     }
 
+    public void AddAmmo(int amountToAdd)
+    {
+        amountBullets += amountToAdd; 
+        Debug.Log($"Added {amountToAdd} bullets. Total: {amountBullets}");
+    }
+
     private void HandleShooting()
     {
         if (!canFire)
@@ -77,13 +84,14 @@ public class ShootingScript : MonoBehaviour
                 timer = 0;
             }
         }
-
-        if (Input.GetMouseButtonDown(0) && canFire)
+        if (amountBullets > 0)
         {
-            canFire = false;
-            Instantiate(bullet, bulletTransform.position, bulletTransform.rotation);
+            if (Input.GetMouseButtonDown(0) && canFire)
+            {
+                canFire = false;
+                Instantiate(bullet, bulletTransform.position, bulletTransform.rotation);
+                amountBullets--;
+            }
         }
     }
 }
-
-

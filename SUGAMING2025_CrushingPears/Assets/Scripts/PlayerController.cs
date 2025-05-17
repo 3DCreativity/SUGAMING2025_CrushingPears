@@ -128,29 +128,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // place holder until we add actual Items with proper functionalities
-    public class ItemData : MonoBehaviour
-    {
-        public string itemName = "DefaultItem";
-        public int amount = 1;
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Item"))
-        {
-            
-            ItemData item = collision.GetComponent<ItemData>();
-            if (item != null && playerStats != null)
-            {
-               playerStats.CollectItem(item.itemName, item.amount);
-            }
-
-            Destroy(collision.gameObject);
-        }
-    }
-
-
     private void Flip()
     {
         m_FacingRight = !m_FacingRight;
