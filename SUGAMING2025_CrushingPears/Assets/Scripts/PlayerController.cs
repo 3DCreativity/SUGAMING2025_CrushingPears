@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float groundCheckRadius = 0.2f;
 
     private Rigidbody2D rb;
-    private bool isGrounded;
+    public bool isGrounded;
     private bool isJumping;
     private float jumpTimeCounter;
     public bool m_FacingRight = true;
@@ -46,6 +46,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        Debug.Log("Current Y Velocity: " + rb.velocity.y);
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
        
@@ -132,7 +133,7 @@ public class PlayerController : MonoBehaviour
     {
         m_FacingRight = !m_FacingRight;
 
-        // Better than Rotate - more predictable
+       
         transform.localScale = new Vector3(
             m_FacingRight ? 1 : -1,
             transform.localScale.y,
@@ -140,6 +141,24 @@ public class PlayerController : MonoBehaviour
         );
     }
 
+    public void DisablePlayer()
+    {
+        enabled = false;
+        GetComponent<Collider2D>().enabled = false;
+        rb.velocity = Vector2.zero;
+        rb.isKinematic = true;
+        GetComponent<SpriteRenderer>().enabled = false;
+    }
+
+    public void EnablePlayer()
+    {
+        enabled = true;
+        GetComponent<Collider2D>().enabled = true;
+        rb.isKinematic = false;
+        GetComponent<SpriteRenderer>().enabled = true;
+        currStamina = maxStamin;
+        StaminaBar.fillAmount = 1f;
+    }
 }
     
 
