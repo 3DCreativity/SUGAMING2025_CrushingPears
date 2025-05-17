@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class ShootingScript : MonoBehaviour
 {
+    [Header("Has The Gun")]
+    public bool hasGun = false;
+
     [Header("Aiming Settings")]
     public float rotationSpeed = 10f;
     public float maxUpAngle = 80f;
@@ -16,7 +19,7 @@ public class ShootingScript : MonoBehaviour
     public GameObject bullet;
     public Transform bulletTransform;
 
-    public int amountBullets = 5;
+    public int amountBullets = 0;
     public bool canFire;
     private float timer;
     public float timeBetweenShots;
@@ -75,6 +78,8 @@ public class ShootingScript : MonoBehaviour
 
     private void HandleShooting()
     {
+        
+
         if (!canFire)
         {
             timer += Time.deltaTime;
@@ -94,4 +99,6 @@ public class ShootingScript : MonoBehaviour
             }
         }
     }
+
+  
 }

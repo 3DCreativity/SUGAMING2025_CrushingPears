@@ -57,4 +57,12 @@ public class PlayerStats : MonoBehaviour
 
         return inventory.ContainsKey(itemName)?inventory[itemName]:0;
     }
+
+    public bool HasGun { get; private set; }
+
+    public void CollectGun()
+    {
+        HasGun = true;
+       
+    }
 }

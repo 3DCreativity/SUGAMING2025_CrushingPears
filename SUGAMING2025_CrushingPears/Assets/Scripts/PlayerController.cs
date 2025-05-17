@@ -61,6 +61,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        Debug.Log("Current Y Velocity: " + rb.velocity.y);
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         if (isGrounded)
         {
@@ -226,11 +227,29 @@ public class PlayerController : MonoBehaviour
     {
         m_FacingRight = !m_FacingRight;
 
-        // Better than Rotate - more predictable
+       
         transform.localScale = new Vector3(
             m_FacingRight ? 1 : -1,
             transform.localScale.y,
             transform.localScale.z
         );
+    }
+    public void DisablePlayer()
+    {
+        enabled = false;
+        GetComponent<Collider2D>().enabled = false;
+        rb.velocity = Vector2.zero;
+        rb.isKinematic = true;
+        GetComponent<SpriteRenderer>().enabled = false;
+    }
+
+    public void EnablePlayer()
+    {
+        enabled = true;
+        GetComponent<Collider2D>().enabled = true;
+        rb.isKinematic = false;
+        GetComponent<SpriteRenderer>().enabled = true;
+        currStamina = maxStamin;
+        StaminaBar.fillAmount = 1f;
     }
 }
