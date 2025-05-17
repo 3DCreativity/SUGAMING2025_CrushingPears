@@ -23,6 +23,7 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded;
     private bool isJumping;
     private float jumpTimeCounter;
+    public bool m_FacingRight = true;
 
     public Image StaminaBar;
 
@@ -99,6 +100,14 @@ public class PlayerController : MonoBehaviour
             }
             recharge = StartCoroutine(RechargeStamina());
         }
+
+        if (moveInput > 0f && !m_FacingRight)
+        {
+            Flip();
+        }
+        else if (moveInput < 0 && m_FacingRight) {
+            Flip();
+        }
         
         rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
     }
@@ -140,8 +149,19 @@ public class PlayerController : MonoBehaviour
             Destroy(collision.gameObject);
         }
     }
-    
 
+
+    private void Flip()
+    {
+        m_FacingRight = !m_FacingRight;
+
+        // Better than Rotate - more predictable
+        transform.localScale = new Vector3(
+            m_FacingRight ? 1 : -1,
+            transform.localScale.y,
+            transform.localScale.z
+        );
+    }
 
 }
     
