@@ -1,8 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+// using System.Numerics;
+using System.Threading.Tasks;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+// using UnityEngine.UIElements;
 
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -15,13 +19,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float jumpTimeMultiplier = 0.8f;
 
     [Header("Ground Check")]
-    [SerializeField] private LayerMask groundLayer; 
-    [SerializeField] private Transform groundCheck; 
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.2f;
 
     private Rigidbody2D rb;
-    public bool isGrounded;
-    private bool isJumping;
+    [SerializeField] private bool isGrounded;
+    [SerializeField] private bool isJumping;
+    private bool canAirJump = false;
     private float jumpTimeCounter;
     public bool m_FacingRight = true;
 
@@ -32,6 +37,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float currStamina;
     [SerializeField] private float moveCost = 10f;
     [SerializeField] private float chargeRate = 5f;
+
+    [Header("Grabbing Mechanics")]
+    public bool collidingWithGrab = false;
+    public Collider2D ledge;
+
+    [SerializeField] private PhysicsMaterial2D slipperyMaterial;
+    [SerializeField] private PhysicsMaterial2D superRoughMaterial;
+    [SerializeField] private bool grabbing;
+    [SerializeField] private float climbRate;
+    [SerializeField] private bool jumpCooling;
 
     private Coroutine recharge;
 
@@ -48,11 +63,15 @@ public class PlayerController : MonoBehaviour
     {
         Debug.Log("Current Y Velocity: " + rb.velocity.y);
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-
-       
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        if (isGrounded)
+        {
+            jumpCooling = false;
+        }
+        
+        if (Input.GetKeyDown(KeyCode.Space) && (isGrounded || canAirJump))
         {
             isJumping = true;
+            canAirJump = false;
             jumpTimeCounter = maxJumpTime;
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
 
@@ -64,16 +83,17 @@ public class PlayerController : MonoBehaviour
             StaminaBar.fillAmount = currStamina / maxStamin;
         }
 
-        if (Input.GetKey(KeyCode.Space) && isJumping) { 
+        if (Input.GetKey(KeyCode.Space) && isJumping)
+        {
 
-             if(jumpTimeCounter > 0)
-              {
-                 rb.velocity = new Vector2(rb.velocity.x, jumpForce*jumpTimeMultiplier);
-                 jumpTimeCounter -= Time.deltaTime;
-              }
+            if (jumpTimeCounter > 0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce * jumpTimeMultiplier);
+                jumpTimeCounter -= Time.deltaTime;
+            }
             else
             {
-                isJumping=false;
+                isJumping = false;
             }
         }
 
@@ -81,13 +101,76 @@ public class PlayerController : MonoBehaviour
         {
             isJumping = false;
         }
+
+        if (Input.GetKeyDown(KeyCode.Q) && collidingWithGrab)
+        {
+            canAirJump = true;
+            ledge.GetComponent<PolygonCollider2D>().sharedMaterial = superRoughMaterial;
+            grabbing = true;
+        }
+
+        if (ledge != null && currStamina<=0f)
+            {
+                ledge.GetComponent<PolygonCollider2D>().sharedMaterial = slipperyMaterial;
+                if (!jumpCooling)
+                {
+                    jumpCooling = true;
+                    JumpCooldown(5000);
+                }
+                Debug.Log("Jump Cooldown Called");
+            }
+
+        if (Input.GetKeyUp(KeyCode.Q) && collidingWithGrab)
+        {
+            grabbing = false;
+            if (ledge != null)
+            {
+                ledge.GetComponent<PolygonCollider2D>().sharedMaterial = slipperyMaterial;
+                if (!jumpCooling)
+                {
+                    jumpCooling = true;
+                    JumpCooldown(5000);
+                }
+                Debug.Log("Jump Cooldown Called");
+            }
+        }
+
+        if (!collidingWithGrab && !isGrounded)
+        {
+            grabbing = false;
+            if (ledge != null)
+            {
+                ledge.GetComponent<PolygonCollider2D>().sharedMaterial = slipperyMaterial;
+                if (!jumpCooling)
+                {
+                    jumpCooling = true;
+                    JumpCooldown(5000);
+                }
+                Debug.Log("Jump Cooldown Called");
+            }
+        }
+
+
+        if (Input.GetKeyDown(KeyCode.E) && grabbing)
+        {
+            Vector2 playerTransform = new Vector2();
+            playerTransform.Set(transform.localPosition.x, transform.localPosition.y + climbRate);
+            transform.SetPositionAndRotation(playerTransform, transform.rotation);
+        }
+
+        if (Input.GetKeyUp(KeyCode.E))
+        {
+            transform.SetPositionAndRotation(transform.position, transform.rotation);
+        }
     }
 
     void FixedUpdate()
     {
 
         float moveInput = Input.GetAxis("Horizontal");
-        if (moveInput != 0f) {
+        if (grabbing)
+        {
+            jumpCooling = false;
             currStamina -= moveCost * Time.deltaTime;
             if (currStamina < 0)
             {
@@ -95,7 +178,7 @@ public class PlayerController : MonoBehaviour
             }
             StaminaBar.fillAmount = currStamina / maxStamin;
 
-            if(recharge != null)
+            if (recharge != null)
             {
                 StopCoroutine(recharge);
             }
@@ -106,21 +189,32 @@ public class PlayerController : MonoBehaviour
         {
             Flip();
         }
-        else if (moveInput < 0 && m_FacingRight) {
+        else if (moveInput < 0 && m_FacingRight)
+        {
             Flip();
         }
-        
-        rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
+
+        rb.velocity = new Vector2(grabbing?(1f * moveSpeed * (m_FacingRight?1:-1)):(moveInput * moveSpeed), rb.velocity.y);
     }
+
+    private async void JumpCooldown(int milliseconds)
+    {
+        Debug.Log("Jump Cooldown Starting");
+        await Task.Delay(milliseconds);
+        Debug.Log("Jump Cooldown Ended");
+        canAirJump = false;
+    }
+
+
 
     private IEnumerator RechargeStamina()
     {
         yield return new WaitForSeconds(1f);
 
-        while(currStamina < maxStamin)
+        while (currStamina < maxStamin)
         {
             currStamina += chargeRate / 10f;
-            if(currStamina > maxStamin)
+            if (currStamina > maxStamin)
             {
                 currStamina = maxStamin;
             }
@@ -140,7 +234,6 @@ public class PlayerController : MonoBehaviour
             transform.localScale.z
         );
     }
-
     public void DisablePlayer()
     {
         enabled = false;
@@ -160,5 +253,3 @@ public class PlayerController : MonoBehaviour
         StaminaBar.fillAmount = 1f;
     }
 }
-    
-
