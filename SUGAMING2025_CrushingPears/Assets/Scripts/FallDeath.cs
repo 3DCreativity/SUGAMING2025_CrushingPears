@@ -25,7 +25,7 @@ public class FallDeath : MonoBehaviour
 
     void FixedUpdate()
     {
-        Debug.Log($"Current Y Velocity: {rb.velocity.y}"); // Critical debug line
+     //   Debug.Log($"Current Y Velocity: {rb.velocity.y}"); // Critical debug line
 
         bool isFalling = !playerController.isGrounded && rb.velocity.y < 0;
 
