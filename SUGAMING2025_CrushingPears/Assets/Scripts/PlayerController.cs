@@ -65,6 +65,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        //Debug.Log("Current Y Velocity: " + rb.velocity.y);
         animator.SetFloat("verticalVelocity", rb.velocity.y);
         animator.SetFloat("horizontalVelocity", Math.Abs(rb.velocity.x));
         Debug.Log("Current Y Velocity: " + rb.velocity.y);

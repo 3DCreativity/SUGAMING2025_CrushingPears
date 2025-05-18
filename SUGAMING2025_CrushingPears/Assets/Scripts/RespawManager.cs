@@ -11,6 +11,7 @@ public class RespawManager : MonoBehaviour
     public Vector3 defaultRespawnPoint;
 
     private Vector3 currentRespawnPoint;
+    private GameObject currentPlayer;
 
     void Awake()
     {
@@ -34,17 +35,44 @@ public class RespawManager : MonoBehaviour
 
     public void RespawnPlayer(GameObject player)
     {
-        StartCoroutine(RespawnCoroutine(player));
+        currentPlayer = player;
+        StartCoroutine(RespawnCoroutine());
     }
 
-    private IEnumerator RespawnCoroutine(GameObject player)
+    private IEnumerator RespawnCoroutine()
     {
+        Debug.Log("Starting respawn process...");
+
+        // Disable player immediately
+        if (currentPlayer != null)
+        {
+            currentPlayer.SetActive(false);
+        }
+
         yield return new WaitForSeconds(respawnDelay);
 
-        if (player != null)
+        if (currentPlayer != null)
         {
-            player.transform.position = currentRespawnPoint;
-            player.GetComponent<PlayerController>().EnablePlayer();
+            Debug.Log($"Respawning at: {currentRespawnPoint}");
+
+            // Reset position and enable
+            currentPlayer.transform.position = currentRespawnPoint;
+            currentPlayer.SetActive(true);
+
+            // Reset player components
+            PlayerController pc = currentPlayer.GetComponent<PlayerController>();
+            if (pc != null)
+            {
+                pc.EnablePlayer();
+            }
+            else
+            {
+                Debug.LogError("PlayerController component missing!");
+            }
+        }
+        else
+        {
+            Debug.LogError("Player reference lost during respawn!");
         }
     }
 }

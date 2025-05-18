@@ -72,7 +72,16 @@ public class ShootingScript : MonoBehaviour
 
     public void AddAmmo(int amountToAdd)
     {
-        amountBullets += amountToAdd; 
+        amountBullets += amountToAdd;
+        if (AmmoCounter.Instance != null)
+        {
+            AmmoCounter.Instance.AddAmmo(amountToAdd);
+        }
+        else
+        {
+            Debug.LogWarning("AmmoCounter instance not found!");
+        }
+
         Debug.Log($"Added {amountToAdd} bullets. Total: {amountBullets}");
     }
 
@@ -96,6 +105,14 @@ public class ShootingScript : MonoBehaviour
                 canFire = false;
                 Instantiate(bullet, bulletTransform.position, bulletTransform.rotation);
                 amountBullets--;
+                if (AmmoCounter.Instance != null)
+                {
+                    AmmoCounter.Instance.UseAmmo();
+                }
+                else
+                {
+                    Debug.LogWarning("AmmoCounter instance not found!");
+                }
             }
         }
     }
