@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 // using System.Numerics;
@@ -48,11 +49,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float climbRate;
     [SerializeField] private bool jumpCooling;
 
+    private Animator animator;
+
     private Coroutine recharge;
 
     private PlayerStats playerStats;
     void Start()
     {
+        animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         rb.freezeRotation = true;
 
@@ -61,6 +65,8 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        animator.SetFloat("verticalVelocity", rb.velocity.y);
+        animator.SetFloat("horizontalVelocity", Math.Abs(rb.velocity.x));
         Debug.Log("Current Y Velocity: " + rb.velocity.y);
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         if (isGrounded)
@@ -71,6 +77,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && (isGrounded || canAirJump))
         {
             isJumping = true;
+            animator.SetBool("isJumping", true);
             canAirJump = false;
             jumpTimeCounter = maxJumpTime;
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
@@ -94,12 +101,14 @@ public class PlayerController : MonoBehaviour
             else
             {
                 isJumping = false;
+                animator.SetBool("isJumping", false);
             }
         }
 
         if (Input.GetKeyUp(KeyCode.Space))
         {
             isJumping = false;
+            animator.SetBool("isJumping", false);
         }
 
         if (Input.GetKeyDown(KeyCode.Q) && collidingWithGrab)
